@@ -1,0 +1,384 @@
+version: '3.5'
+
+services:
+  mlk-gateway:
+    container_name: 'mlk-gateway'
+    volumes:
+    - ./services/mlk-file:/files
+    build:
+      context: ./services/gateway
+      dockerfile: Dockerfile
+    ports:
+    - "8085:8081"
+    depends_on:
+    - mlk-auth
+    environment:
+      JWT_VALIDATE_URL: http://mlk-auth:3030/auth/validate
+      AUTH_VALIDATE_URL: http://mlk-auth:3030/access
+    restart: always
+    networks:
+    - front
+    - back
+    deploy:
+      restart_policy:
+        condition: on-failure
+    
+  mlk-timesheet:
+    hostname: mlk-timesheet
+    volumes:
+      - ./services/mlk-timesheet:/home/app
+    build:
+      context: ./services/mlk-timesheet
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-timesheet'
+    depends_on:
+    - mlk-dbtimesheet
+    - mlk-redis
+    networks:
+    - back
+    env_file:
+    - './services/mlk-timesheet/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-calendar:
+    hostname: mlk-calendar
+    volumes:
+      - ./services/mlk-calendar:/home/app
+    build:
+      context: ./services/mlk-calendar
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-calendar'
+    depends_on:
+    - mlk-dbcalendar
+    - mlk-redis
+    networks:
+    - back
+    env_file:
+    - './services/mlk-calendar/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure    
+    
+  mlk-vacation-handler:
+    hostname: mlk-vacation-handler
+    volumes:
+      - ./services/mlk-vacation-handler:/home/app
+    build:
+      context: ./services/mlk-vacation-handler
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-vacation-handler'
+    depends_on:
+    - mlk-vacation
+    networks:
+    - back
+    env_file:
+    - './services/mlk-vacation-handler/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure   
+
+  mlk-vacation:
+    hostname: mlk-vacation
+    volumes:
+      - ./services/mlk-vacation:/home/app
+    build:
+      context: ./services/mlk-vacation
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-vacation'
+    depends_on:
+    - mlk-dbvacation
+    - mlk-redis
+    networks:
+    - back
+    env_file:
+    - './services/mlk-vacation/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure 
+
+  mlk-scheduler-arena:
+    container_name: mlk-scheduler-arena
+    image: mixmaxhq/arena:latest
+    networks:
+      - back
+    ports:
+      - "4567:4567"
+    depends_on:
+      - mlk-redis
+    volumes:
+      - ./config/bull-arena/index.json:/opt/arena/src/server/config/index.json
+
+
+  mlk-scheduler:
+    hostname: mlk-scheduler
+    volumes:
+      - ./services/mlk-scheduler:/home/app
+    build:
+      context: ./services/mlk-scheduler
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-scheduler'
+    depends_on:
+    - mlk-dbscheduler
+    - mlk-redis
+    networks:
+    - back
+    env_file:
+    - './services/mlk-scheduler/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure 
+
+  mlk-dbvacation:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-vacation/env/node.env
+    restart: always
+    container_name: 'mlk-dbvacation'
+    networks:
+    - back
+    hostname: mlk-dbvacation
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbvacation:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-profile:
+    hostname: mlk-profile
+    volumes:
+    - ./services/mlk-profile:/home/app
+    build:
+      context: ./services/mlk-profile
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-profile'
+    depends_on:
+    - mlk-dbprofile
+    - mlk-redis
+    - mlk-scheduler
+    networks:
+    - back
+    env_file:
+    - './services/mlk-profile/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-file:
+    hostname: mlk-file
+    volumes:
+    - ./services/mlk-file:/home/app
+    build:
+      context: ./services/mlk-file
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-file'
+    depends_on:
+    - mlk-dbfile
+    - mlk-redis
+    networks:
+    - back
+    env_file:
+    - './services/mlk-file/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-auth:
+    hostname: mlk-auth
+    volumes:
+      - ./services/mlk-auth:/home/app
+    build:
+      context: ./services/mlk-auth
+      dockerfile: Dockerfile
+    restart: always
+    container_name: 'mlk-auth'
+    depends_on:
+    - mlk-dbauth
+    - mlk-redis
+    networks:
+    - back
+    env_file:
+    - './services/mlk-auth/env/node.env'
+    environment:
+      APP_ENV: dev
+      NODE_ENV: dev
+    command:
+      bash ./scripts/run.sh
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-dbauth:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-auth/env/node.env
+    restart: always
+    container_name: 'mlk-dbauth'
+    networks:
+    - back
+    hostname: mlk-dbauth
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbauth:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-dbprofile:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-profile/env/node.env
+    restart: always
+    container_name: 'mlk-dbprofile'
+    networks:
+    - back
+    hostname: mlk-dbprofile
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbprofile:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+  
+  mlk-dbtimesheet:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-timesheet/env/node.env
+    restart: always
+    container_name: 'mlk-dbtimesheet'
+    networks:
+    - back
+    hostname: mlk-dbtimesheet
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbtimesheet:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-dbfile:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-file/env/node.env
+    restart: always
+    container_name: 'mlk-dbfile'
+    networks:
+    - back
+    hostname: mlk-dbfile
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbfile:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-dbcalendar:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-calendar/env/node.env
+    restart: always
+    container_name: 'mlk-dbcalendar'
+    networks:
+    - back
+    hostname: mlk-dbcalendar
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbcalendar:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+
+  mlk-dbscheduler:
+    image: postgres:latest
+    env_file: 
+      - ./services/mlk-calendar/env/node.env
+    restart: always
+    container_name: 'mlk-dbscheduler'
+    networks:
+    - back
+    hostname: mlk-dbscheduler
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/dbscheduler:/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mlk-redis:
+    image: redis:alpine
+    restart: always
+    container_name: 'mlk-redis'
+    networks:
+    - back
+    hostname: mlk-redis
+    ports:
+    - "6379"
+    deploy:
+      # replicas: 2
+      # update_config:
+      #   parallelism: 1
+      #   delay: 10s
+      restart_policy:
+        condition: on-failure
+
+networks:
+  front:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.238.0/24
+  back:
+    driver: bridge
