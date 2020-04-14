@@ -46,7 +46,7 @@
     "@types/node": "^10.12.18",
     "@types/sequelize": "^4.27.34",
     "@types/supertest": "^2.0.7",
-    "acorn": "^6.0.5",
+    "acorn": "^6.4.1",
     "apidoc": "^0.17.7",
     "chai": "^4.2.0",
     "coveralls": "^3.0.2",
