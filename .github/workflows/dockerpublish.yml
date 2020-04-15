@@ -11,7 +11,7 @@ on:
       - v*
 env:
   DOCKER_REPO: ${{ secrets.docker_repo }}
-  PUBLICPASSWORD: ${{ secrets.docker_repo }}
+  PUBLICPASSWORD: ${{ secrets.docker_pass }}
 
 jobs:
   # Run tests.
