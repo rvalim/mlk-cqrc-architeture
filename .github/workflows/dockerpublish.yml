@@ -1,0 +1,34 @@
+image: mlk-cqrc/nodebuilder:latest
+
+variables:
+  dockerTag: '$CI_BUILD_REF'
+  DOCKER_REPO: mlk-cqrc
+
+services:
+- docker:dind
+
+before_script:
+- echo $dockerTag
+
+stages:
+- test
+- deploy
+
+test:
+  stage: test
+  script:
+  - cd ./scripts && ./runbuilds.sh
+  only:
+  - dev
+
+deploy:
+  type: deploy
+  script:
+  - chmod 777 -R scripts
+  - cd ./scripts && ./rundeploy.sh
+  # deploy the images
+  # - ssh user@someserver.com -p2224 "docker pull $RELEASE_IMAGE"
+  # - ssh user@someserver.com -p2224 "${DOCKER_COMPOSE_CMD} stop"
+  # - ssh user@someserver.com -p2224 "${DOCKER_COMPOSE_CMD} up -d"
+  only:
+  - master
