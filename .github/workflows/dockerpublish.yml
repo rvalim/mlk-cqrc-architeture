@@ -1,34 +1,52 @@
-image: mlk-cqrc/nodebuilder:latest
+name: Docker
 
-variables:
-  dockerTag: '$CI_BUILD_REF'
-  DOCKER_REPO: mlk-cqrc
+on:
+  push:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - master
 
-services:
-- docker:dind
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - v*
 
-before_script:
-- echo $dockerTag
+  # Run tests for any PRs.
+  pull_request:
 
-stages:
-- test
-- deploy
+env:
+  # TODO: Change variable to your image's name.
+  IMAGE_NAME: image
 
-test:
-  stage: test
-  script:
-  - cd ./scripts && ./runbuilds.sh
-  only:
-  - dev
+jobs:
+  # Run tests.
+  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
+  test:
+    runs-on: ubuntu-latest
 
-deploy:
-  type: deploy
-  script:
-  - chmod 777 -R scripts
-  - cd ./scripts && ./rundeploy.sh
-  # deploy the images
-  # - ssh user@someserver.com -p2224 "docker pull $RELEASE_IMAGE"
-  # - ssh user@someserver.com -p2224 "${DOCKER_COMPOSE_CMD} stop"
-  # - ssh user@someserver.com -p2224 "${DOCKER_COMPOSE_CMD} up -d"
-  only:
-  - master
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run tests
+        run: |
+          cd ./scripts && ./runbuilds.sh
+
+  # Push image to GitHub Packages.
+  # See also https://docs.docker.com/docker-hub/builds/
+  push:
+    # Ensure test job passes before pushing image.
+    needs: test
+
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Push image
+        run: |
+
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+
+          chmod 777 -R scripts
+          cd ./scripts && ./rundeploy.sh
