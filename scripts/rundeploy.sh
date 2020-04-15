@@ -1,5 +1,5 @@
 # $DOCKER_REPO mlk-cqrc
-docker login -u=$DOCKER_REPO -p=$PUBLICPASSWORD
+echo "$PUBLICPASSWORD" | docker login -u $DOCKER_REPO --password-stdin
 cd ../services/mlk-auth
 docker build -t auth .
 docker tag auth $DOCKER_REPO/mlk-auth:stable
