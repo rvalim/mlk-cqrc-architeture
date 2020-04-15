@@ -1,5 +1,5 @@
 #  mlk-cqrc
-sudo docker login -u=lim0nes -p=publicpassword@
+sudo docker login -u=$DOCKER_REPO -p=$PUBLICPASSWORD
 cd ../services/mlk-auth
 sudo docker build -t auth .
 sudo docker tag auth $DOCKER_REPO/mlk-auth:stable
