@@ -41,6 +41,6 @@ jobs:
 
       - name: Push image
         run: |
-          echo "$PUBLICPASSWORD" | docker login -u=$DOCKER_REPO --password-stdin
+          echo "$PUBLICPASSWORD" | docker login -u $DOCKER_REPO --password-stdin
           chmod 777 -R scripts
    #       cd ./scripts && ./rundeploy.sh
