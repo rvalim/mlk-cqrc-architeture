@@ -10,8 +10,8 @@ on:
     tags:
       - v*
 env:
-  DOCKER_REPO: secrets.docker_repo
-  PUBLICPASSWORD: secrets.docker_repo
+  DOCKER_REPO: ${{ secrets.docker_repo }}
+  PUBLICPASSWORD: ${{ secrets.docker_repo }}
 
 jobs:
   # Run tests.
