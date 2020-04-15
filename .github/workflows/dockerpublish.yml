@@ -25,7 +25,7 @@ jobs:
       - name: Run tests
         run: | 
           chmod 777 -R scripts
-  #        cd ./scripts && ./runbuilds.sh
+          cd ./scripts && ./runbuilds.sh
 
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
@@ -41,6 +41,5 @@ jobs:
 
       - name: Push image
         run: |
-          echo "$PUBLICPASSWORD" | docker login -u $DOCKER_REPO --password-stdin
           chmod 777 -R scripts
-   #       cd ./scripts && ./rundeploy.sh
+          cd ./scripts && ./rundeploy.sh
