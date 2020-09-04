@@ -33,7 +33,7 @@
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
-    "sequelize": "^4.44.0",
+    "sequelize": "^5.15.1",
     "sequelize-cli": "^5.5.0",
     "sequelize-typescript": "^0.6.11",
     "bull": "^3.10.0"
